@@ -23,7 +23,27 @@
       <el-form-item label="讲师简介">
         <el-input v-model="teacher.intro" :rows="10" type="textarea"/>
       </el-form-item>
+
       <!-- 讲师头像：TODO -->
+      <!-- 讲师头像 -->
+      <el-form-item label="讲师头像">
+        <!-- 头衔缩略图 -->
+        <pan-thumb :image="teacher.avatar ? teacher.avatar : 'https://prover-guli.oss-cn-shenzhen.aliyuncs.com/default.jpg'"/>
+        <!-- 文件上传按钮 -->
+        <el-button type="primary" icon="el-icon-upload"
+                   @click="imagecropperShow=true">更换头像
+        </el-button>
+        <image-cropper
+          v-show="imagecropperShow"
+          :width="300"
+          :height="300"
+          :key="imagecropperKey"
+          :url="BASE_API+'/oss/file/upload'"
+          field="file"
+          @close="close"
+          @crop-upload-success="cropSuccess"/>
+      </el-form-item>
+
       <el-form-item>
         <el-button :disabled="btnDisabled" type="primary" @click="saveOrUpdate">
           保存
@@ -34,15 +54,27 @@
 </template>
 
 <script>
+import ImageCropper from '@/components/ImageCropper'
+import PanThumb from '@/components/PanThumb'
 import teacherApi from '@/api/edu/teacher'
 
 export default {
   name: 'TeacherSave',
+  components: {
+    ImageCropper,
+    PanThumb
+  },
   data() {
     return {
       tId: '',
       teacher: {},
-      btnDisabled: false
+      btnDisabled: false,
+      // 接口 API 地址
+      BASE_API: process.env.BASE_API,
+      // 是否显示上传组件
+      imagecropperShow: false,
+      // 上传组件 id
+      imagecropperKey: 0
     }
   },
   methods: {
@@ -58,7 +90,7 @@ export default {
         type: 'success',
         message: `${tId ? '修改' : '保存'}成功!`
       })
-      this.$router.push({ name: 'TeacherIndex' })
+      this.$router.push({name: 'TeacherIndex'})
     },
     async getTeacherDetail() {
       const {data} = await teacherApi.getTeacherDetail(this.tId);
@@ -72,6 +104,15 @@ export default {
         this.teacher = {}
         this.tId = ''
       }
+    },
+    close() {
+      this.imagecropperShow = false
+      this.imagecropperKey = this.imagecropperKey + 1
+    },
+    cropSuccess(data) {
+      this.imagecropperShow = false
+      this.imagecropperKey = this.imagecropperKey + 1
+      this.teacher.avatar = data
     }
   },
   watch: {

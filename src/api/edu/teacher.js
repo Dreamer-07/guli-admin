@@ -10,6 +10,12 @@ export default {
       data: searchObj
     })
   },
+  getAllTeacher(){
+    return request({
+      url: `${apiName}/findAll`,
+      method: 'get'
+    })
+  },
   removeDataById(id) {
     return request({
       url: `${apiName}/${id}`,

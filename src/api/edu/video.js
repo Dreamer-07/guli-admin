@@ -14,5 +14,12 @@ export default {
       url: `${apiName}/${videoId}`,
       method: 'delete'
     });
+  },
+  // 删除视频资源
+  deleteVideoSource(videoSourceId) {
+    return request({
+      url: `/vdo/file/${videoSourceId}`,
+      method: 'delete'
+    });
   }
 }

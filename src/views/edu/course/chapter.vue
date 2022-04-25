@@ -47,7 +47,7 @@
           <el-input v-model="chapter.title"/>
         </el-form-item>
         <el-form-item label="章节排序">
-          <el-input-number v-model="chapter.sort" :min="0" controlsposition="right"/>
+          <el-input-number v-model="chapter.sort" :min="0"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -72,7 +72,26 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="上传视频">
-          <!-- TODO -->
+          <el-upload
+            :on-success="handleVodUploadSuccess"
+            :on-remove="handleVodRemove"
+            :before-remove="beforeVodRemove"
+            :on-exceed="handleUploadExceed"
+            :file-list="fileList"
+            :action="BASE_API+'/vdo/file/upload'"
+            :limit="1"
+            class="upload-demo">
+            <el-button size="small" type="primary">上传视频</el-button>
+            <el-tooltip placement="right-end">
+              <div slot="content">最大支持1G，<br>
+                支持3GP、ASF、AVI、DAT、DV、FLV、F4V、<br>
+                GIF、M2T、M4V、MJ2、MJPEG、MKV、MOV、MP4、<br>
+                MPE、MPG、MPEG、MTS、OGG、QT、RM、RMVB、<br>
+                SWF、TS、VOB、WMV、WEBM 等视频格式上传
+              </div>
+              <i class="el-icon-question"/>
+            </el-tooltip>
+          </el-upload>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -101,7 +120,9 @@ export default {
         free: false
       }, // 小节信息
       dialogVideoFormVisible: false, // 是否显示小节的弹出框
-      saveVideoBtnDisabled: false // 是否禁用保存小节按钮
+      saveVideoBtnDisabled: false, // 是否禁用保存小节按钮
+      fileList: [],
+      BASE_API: process.env.BASE_API
     }
   },
   mounted() {
@@ -144,7 +165,7 @@ export default {
       const {chapter, courseId} = this
       await chapterApi.saveChapterInfo({...chapter, courseId})
     },
-    // 修改 chaoter
+    // 修改 chapter
     async updateChapterInfo() {
       const {title, sort, id} = this.chapter
       await chapterApi.updateChapterInfo(id, {id, title, sort})
@@ -212,6 +233,31 @@ export default {
         await videoApi.deleteVideoInfo(videoId)
         await this.getChapterByCourseId()
       })
+    },
+
+    // 小节视频管理
+    // 上传成功
+    handleVodUploadSuccess(response, file) {
+      // 通过 response 访问响应结果
+      const {data} = response;
+      this.video.videoSourceId = data;
+      this.video.videoOriginalName = file.name;
+    },
+    // 文件超出个数限制时的钩子
+    handleUploadExceed() {
+      this.$message.warning("只支持上传一个视频，如果需要重新上传请删除源视频")
+    },
+    // 删除之前
+    beforeVodRemove(file) {
+      return this.$confirm(`确定删除${file.name}视频资源吗?`)
+    },
+    // 执行删除
+    async handleVodRemove() {
+      await videoApi.deleteVideoSource(this.video.videoSourceId)
+      this.$message.success('删除成功')
+      this.fileList = []
+      this.video.videoSourceId = ''
+      this.video.videoOriginalName = ''
     }
   }
 }

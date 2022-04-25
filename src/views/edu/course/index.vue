@@ -7,8 +7,7 @@
       <el-form-item label="课程类别">
         <el-select
           v-model="searchObj.subjectParentId"
-          placeholder="请选择"
-          @change="subjectLevelOneChanged">
+          placeholder="请选择">
           <el-option
             v-for="subject in subjectNestedList"
             :key="subject.id"
